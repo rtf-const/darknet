@@ -702,13 +702,13 @@ void correct_yolo_boxes(detection *dets, int n, int w, int h, int netw, int neth
 }
 */
 
-int yolo_num_detections(layer l, float thresh)
+int yolo_num_detections(layer l, float thresh, int n_in_batch)
 {
     int i, n;
     int count = 0;
     for (i = 0; i < l.w*l.h; ++i){
         for(n = 0; n < l.n; ++n){
-            int obj_index  = entry_index(l, 0, n*l.w*l.h + i, 4);
+            int obj_index  = entry_index(l, n_in_batch, n*l.w*l.h + i, 4);
             if(l.output[obj_index] > thresh){
                 ++count;
             }
@@ -743,11 +743,11 @@ void avg_flipped_yolo(layer l)
     }
 }
 
-int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh, int *map, int relative, detection *dets, int letter)
+int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh, int *map, int relative, detection *dets, int letter, int n_in_batch)
 {
     //printf("\n l.batch = %d, l.w = %d, l.h = %d, l.n = %d \n", l.batch, l.w, l.h, l.n);
     int i,j,n;
-    float *predictions = l.output;
+    float *predictions = l.output + n_in_batch * l.outputs;
     // This snippet below is not necessary
     // Need to comment it in order to batch processing >= 2 images
     //if (l.batch == 2) avg_flipped_yolo(l);
